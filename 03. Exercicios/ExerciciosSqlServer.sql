@@ -16,7 +16,7 @@ CREATE TABLE CIDADE
 CREATE TABLE CATEGORIA 
 	(
 	ID_CATEGORIA INT IDENTITY (1,1) NOT NULL PRIMARY KEY,
-	NOME_CATEGOR VARCHAR (20)
+	NOME_CATEGORIA VARCHAR (20)
 );
 
 --- TABELA DE UNIDADE DE MEDIDA DO PRODUTO
@@ -93,18 +93,26 @@ CREATE TABLE VENDA_ITENS
 EXERCÍCIO 2 
 Restaurar o arquivo  treino.bak no banco de dados criado.
 */
-
+USE TREINO
+RESTORE DATABASE TREINO FROM DISK = 'CAMINHO DO BANCO DE DADOS AQUI'  WITH REPLACE
 /*
 EXERCÍCIO 3 
 Liste todos os clientes com seus nomes e com suas respectivas cidade e estados
 */
-
+SELECT A.NOME_CLIENTE, B.NOME_CIDADE B.UF 
+	FROM CLIENTE A
+	INNER JOIN CIDADE B
+	ON A.ID_CIDADE = B.ID_CIDADE
   
 /*
 EXERCÍCIO 4 
 Liste o código do produto, descrição do produto e descrição das categorias dos produtos que tenham o valor unitário na 
 faixa de R$ 10,00 a R$ 1500
 */
+SELECT A.ID_PROD, A.NOME_PROD, B.NOME_CATEGORIA, A.PRECO FROM PRODUTOS A
+	INNER JOIN CATEGORIA B
+	ON A.ID_CATEGORIA = B.PRODUTOS
+	WHERE PRECO BETWEEN 10 AND 1500;
 
 /*
 EXERCÍCIO 5 
