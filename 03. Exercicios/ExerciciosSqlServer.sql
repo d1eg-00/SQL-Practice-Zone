@@ -45,7 +45,7 @@ CREATE TABLE CLIENTE
 CREATE TABLE VENDEDORES
 	(
 	ID_VENDEDOR INT IDENTITY (1,1) NOT NULL PRIMARY KEY,
-	NOME_VENDED VARCHAR (60),
+	NOME_VENDEDOR VARCHAR (60),
 	SALARIO DECIMAL (10,2)
 );
 
@@ -111,8 +111,8 @@ faixa de R$ 10,00 a R$ 1500
 */
 SELECT A.ID_PROD, A.NOME_PROD, B.NOME_CATEGORIA, A.PRECO FROM PRODUTOS A
 	INNER JOIN CATEGORIA B
-	ON A.ID_CATEGORIA = B.PRODUTOS
-	WHERE PRECO BETWEEN 10 AND 1500;
+	ON A.ID_CATEGORIA = B.ID_CATEGORIA
+	WHERE A.PRECO BETWEEN 10 AND 1500;
 
 /*
 EXERCÍCIO 5 
@@ -122,12 +122,21 @@ Com os seguintes critérios
 •	preço  >= 500 e <=1000 valor da coluna será igual  "preço entre 500 e 1000"
 •	preço  > 1000 : valor da coluna será igual  "preço acima de 1000".
 */
-
+SELECT A.ID_PROD, A.NOME_PROD, B.NOME_CATEGORIA, A.PRECO,
+CASE
+	WHEN A.PRECO < 500 THEN 'PRECO ABAIXO DE 500'
+	WHEN A.PRECO >= 500 e <=1000 THEN 'PRECO ENTRE 500 E 1000'
+	WHEN A.PRECO > 1000 THEN 'PRECO ACIMA DE 1000' END AS FAIXA_PRECO
+	FROM PRODUTOS A
+	INNER JOIN CATEGORIA B
+	ON A.ID_CATEGORIA = B.ID_CATEGORIA
+	
 /*
 EXERCÍCIO  6
 Adicione a coluna faixa_salario na tabela vendedor tipo char(1)
 */
-
+ALTER TABLE VENDEDORES
+	ADD COLUMN FAIXA_SALARIO CHAR (1);
 /*
 EXERCÍCIO 7 
 Atualize o valor do campo faixa_salario da tabela vendedor com um update condicional .
@@ -138,12 +147,21 @@ Com os seguintes critérios
 
 **VERIFIQUE SE OS VALORES FORAM ATUALIZADOS CORRETAMENTE
 */
-
+UPDATE VENDEDORES 
+SET FAIXA_SALARIO = CASE
+	WHEN SALARIO < 1000 THEN 'C'
+	WHEN SALARIO >= 1000 AND SALARIO < 2000 THEN 'B'
+	WHEN SALARIO >= 2000 THEN 'A'
+	END;
 /*
 EXERCÍCIO 8
 Listar em ordem alfabética os vendedores e seus respectivos salários, mais uma coluna, simulando aumento de 12% em seus salários.
 */
-
+SELECT A.NOME_VENDEDOR, 
+	   A.SALARIO AS SALARIO_ATUAL, 
+       (A.SALARIO * 1.12) AS SALARIO_AUMENTADO 
+FROM VENDEDORES A 
+ORDER BY A.NOME_VENDEDOR ASC
 
 /*EXERCÍCIO 9
 Listar os nome dos vendedores, salário atual , coluna calculada com salario novo + reajuste de 18% sobre o salário atual, calcular  a coluna acréscimo e calcula uma coluna salario novo+ acresc.
@@ -151,25 +169,47 @@ Critérios
 Se o vendedor for  da faixa “C”, aplicar  R$ 120 de acréscimo , outras faixas de salario acréscimo igual a 0(Zero )
 */
 
+--DECLARANDO VARIAVEIS 
+
+DECLARE @ACRESCIMO DECIMAL (10,2) = 120;
+DECLARE @PCT_AUMENTO DECIMAL (10,2) = 1.18;
+
+--SELECT DE DADOS
+
+SELECT A.NOME_VENDEDOR, 
+	   A.FAIXA_SALARIO, 
+	   A.SALARIO AS SALARIO_ATUAL, 
+	   A.SALARIO * @PCT_AUMENTO AS SALARIO_NOVO
+	   CASE WHEN A.FAIXA_SALARIO = 'C' THEN @ACRESCIMO ELSE 0 END ACRESC
+	   CASE WHEN A.FAIXA_SALARIO = 'C' THEN @ACRESCIMO + A.SALARIO * @PCT_AUMENTO 
+		ELSE A.SALARIO * @PCT_AUMENTO END SALARIO_NOVO_ACRESC
+FROM VENDEDORES A
+ORDER BY 4 DESC
 /*
 EXERCÍCIO 10
 Listar o nome e salários do vendedor com menor salario.
 */
-
+SELECT TOP 1 A.NOME_VENDEDOR, 
+	   A.SALARIO
+FROM VENDEDORES A
+ORDER BY SALARIO ASC
 /*
 EXERCÍCIO 11
 Quantos vendedores ganham acima de R$ 2.000,00 de salário fixo?
 */
+SELECT COUNT (*) AS QTD_VENDEDORES_ACIMA_2000
+FROM VENDEDORES
+WHERE SALARIO > 2000;
 /*
 EXERCÍCIO 12
 Adicione o campo valor_total tipo decimal(10,2) na tabela venda.
 */
-
+ALTER TABLE VENDAS ADD COLUMN VALOR_TOTAL DECIMAL (10,2);
 /*
 EXERCÍCIO 13
-Atualize o campo valor_tota da tabela venda, com a soma dos produtos das respectivas vendas.
+Atualize o campo valor_total da tabela venda, com a soma dos produtos das respectivas vendas.
 */
-
+UPDATE VENDAS SET VALOR_TOTAL 
 /*
 EXERCÍCIO 14
 Realize a conferencia do exercício anterior, certifique-se que o valor  total de cada venda e igual ao valor total da soma dos  produtos da venda, listar as vendas em que ocorrer diferença.
@@ -246,39 +286,3 @@ Lista o a data da última venda de cada produto.
 
 
 
-declare @propostaId int = 1045569736,
-        @propostaStatusHistoricoId int,
-        @propostaDecisaoId int = 3,
-        @observacao varchar(8000) = null
-
-insert into PropostaStatusHistorico (PropostaId, TipoModalidade, PropostaEtapaId, PropostaDecisaoId, UsuarioId, [Data], Observacao, Fl_Falha_Consulta)
-select  id, 
-        tipoModalidade, 
-        propostaEtapaId, 
-        @propostaDecisaoId, 
-        analistaId, 
-        dbo.getdateBR(), 
-        'Proposta cancelada via ticket 365493',
-        0 as Fl_Falha_Consulta
-from Proposta with(nolock)
-where id = @propostaId
-set @propostaStatusHistoricoId = @@identity
-
-update Proposta 
-set 
-    PropostaDecisaoId = @propostaDecisaoId,
-    Finalizacao = dbo.getdateBR(),
-    AnalistaId = 1592966,
-    PropostaStatusHistoricoId = @propostaStatusHistoricoId,
-    UltimaAlteracao = dbo.getdateBR()
-where Id = @propostaId
-
-insert into log.SalvamentoProposta(PropostaId, UsuarioId, DataHora, PropostaDecisaoId, PropostaEtapaId, Automatizada)
-select  a.id,
-        a.analistaId,
-        dbo.getdateBR(),
-        a.PropostaDecisaoId,
-        a.PropostaEtapaId,
-        0
-from Proposta a with(nolock)
-where id = @propostaId
