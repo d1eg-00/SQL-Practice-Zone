@@ -209,7 +209,8 @@ ALTER TABLE VENDAS ADD COLUMN VALOR_TOTAL DECIMAL (10,2);
 EXERCÍCIO 13
 Atualize o campo valor_total da tabela venda, com a soma dos produtos das respectivas vendas.
 */
-UPDATE VENDAS SET VALOR_TOTAL 
+UPDATE VENDAS SET VALOR_TOTAL = (SELECT SUM(VAL_TOTAL) FROM VENDA_ITENS A
+	WHERE VENDAS.NUM_VENDA=A.VALOR_TOTAL;
 /*
 EXERCÍCIO 14
 Realize a conferencia do exercício anterior, certifique-se que o valor  total de cada venda e igual ao valor total da soma dos  produtos da venda, listar as vendas em que ocorrer diferença.
